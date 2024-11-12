@@ -5,6 +5,8 @@ from selenium.webdriver.support import expected_conditions as EC
 import re
 import sys
 import csv
+import json
+import urllib.parse
 
 def extract_links(driver):
     links = []
@@ -64,15 +66,95 @@ if len(sys.argv) != 2:
     exit(0)
 output_file = sys.argv[1]
 
-url = "https://support.broadcom.com/web/ecx/search?searchString=&activeType=knowledge_articles_doc&sortby=_score&orderBy=desc&aggregations=%5B%7B%22type%22%3A%22_type%22%2C%22filter%22%3A%5B%22knowledge_articles_doc%22%5D%7D%2C%7B%22type%22%3A%22productname%22%2C%22filter%22%3A%5B%22VMware+NSX%22%2C%22VMware+vDefend+Firewall%22%2C%22VMware+NSX-T+Data+Center%22%2C%22VMware+NSX+Networking%22%2C%22VMware+NSX+Firewall%22%5D%7D%2C%7B%22type%22%3A%22post_time%22%2C%22filter%22%3A%5B%22Past+Month%22%5D%7D%5D&uid=d042dbba-f8c4-11ea-beba-0242ac12000b&exactPhrase=&withOneOrMore=&withoutTheWords=&language=en&state=2&suCaseCreate=false&resultsPerPage=50&pageSize=50"
-#url = "https://support.broadcom.com/web/ecx/search?searchString=&activeType=knowledge_articles_doc&sortby=_score&orderBy=desc&aggregations=%5B%7B%22type%22%3A%22_type%22%2C%22filter%22%3A%5B%22knowledge_articles_doc%22%5D%7D%2C%7B%22type%22%3A%22productname%22%2C%22filter%22%3A%5B%22VMware+NSX%22%2C%22VMware+vDefend+Firewall%22%2C%22VMware+NSX-T+Data+Center%22%2C%22VMware+NSX+Networking%22%2C%22VMware+NSX+Firewall%22%5D%7D%2C%7B%22type%22%3A%22post_time%22%2C%22filter%22%3A%5B%22Past+Week%22%5D%7D%5D&uid=d042dbba-f8c4-11ea-beba-0242ac12000b&exactPhrase=&withOneOrMore=&withoutTheWords=&language=en&state=1&suCaseCreate=false&resultsPerPage=50&pageSize=50"
+
+pagesize = 50
+post_time = "Past Week"  # or "Past Month"
+base = "https://support.broadcom.com/web/ecx/search?"
+aggregations = [
+    {
+        "type":"_type",
+        "filter":[
+            "knowledge_articles_doc"
+        ]
+    },
+    {
+        "type":"productname",
+        "filter":[
+            "VMware NSX",
+            "VMware vDefend Firewall",
+            "VMware NSX-T Data Center",
+            "VMware NSX Networking",
+            "VMware NSX Firewall"
+        ]
+    },
+    {
+        "type":"post_time",
+        "filter":[ post_time ]
+    }
+]
+params = {
+    "activeType": "knowledge_articles_doc",
+    "language": "en",
+    "resultsPerPage": pagesize,
+    "pageSize": pagesize,
+    "aggregations": json.dumps(aggregations)
+}
+url = base + urllib.parse.urlencode(params)
 links = scrape_dynamic_links(url)
+
+exclution_keywords = [
+    "for vSphere",
+    "NSX-v",
+    "BGP",
+    "OSPF",
+    "Federation",
+    "federated",
+    " GM ",
+    "Global Manager",
+    "Global-Manager",
+    "LDAP",
+    "VPN",
+    "IPSec",
+    "Policy API",
+    "NAPP",
+    "NSX Application Platform",
+    "NSX Intelligence",
+    "Security Only",
+    "NSXe",
+    "V2T",
+    "Migrate Coordinator",
+    "Malware",
+    "IDFW",
+    "TAS",
+    "TKG",
+    "Docker",
+    "Container",
+    "NCP",
+    "SDDC-Managed",
+    "SDDC-Manager",
+    "SDDC Manager",
+    "VMware By Broadcom",
+    "The purpose of this KB is to provide",
+    "vLCM"
+]
 
 with open(output_file, 'w', encoding='utf8') as f:
     writer = csv.writer(f)
+    writer.writerow(["Article ID", "Link", "Title", "Last Updated", "Judge", "Description"])
     for link in links:
-        writer.writerow([link["articleid"], link["link"], link["title"], link["updated"], link["description"]])
+        description = link["description"]
+        title = link["title"]
 
+        found = False
+        for keyword in exclution_keywords:
+            if description.lower().find(keyword.lower()) != -1:
+                found = True
+                break
+        judge = ""
+        if found:
+            judge = "exclude"
+
+        writer.writerow([link["articleid"], link["link"], title, link["updated"], judge, description])
 
 """
 <div class="su__w-100 su__overflow-hide su__media-body su__word-break custom-overflow-initial">
