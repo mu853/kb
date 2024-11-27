@@ -17,5 +17,12 @@
     "activeTab",
     "scripting",
     "tabs"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://broadcomcms-software-agent.wolkenservicedesk.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
   ]
 }

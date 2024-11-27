@@ -19,6 +19,13 @@ chrome.runtime.onInstalled.addListener(function(){
         title: "KBを開く(LegacyId)",
         contexts: ["all"]
     });
+
+    chrome.contextMenus.create({
+        type: "normal",
+        id: "bugzilla",
+        title: "bugzillaを開く",
+        contexts: ["all"]
+    });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
@@ -40,6 +47,9 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     break;
                 case "kb-legacy":
                     chrome.tabs.create({url: "https://knowledge.broadcom.com/external/article?legacyId=" + id});
+                    break;
+                case "bugzilla":
+                    chrome.tabs.create({url: "https://bugzilla.eng.vmware.com/show_bug.cgi?id=" + id});
                     break;
                 default:
                     //
