@@ -8,6 +8,13 @@ chrome.runtime.onInstalled.addListener(function(){
 
     chrome.contextMenus.create({
         type: "normal",
+        id: "wolken-sr",
+        title: "Wolkenを開く(SR)",
+        contexts: ["all"]
+    });
+
+    chrome.contextMenus.create({
+        type: "normal",
         id: "kb",
         title: "KBを開く(ArticleId or Text)",
         contexts: ["all"]
@@ -34,13 +41,16 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     if (!text) {
         console.log("text not selected")
     } else {
-        matches = text.match(/(KB|case|Case)?#?(\d{4,7})/)
+        matches = text.match(/(KB|case|Case)?#?(\d{4,8})/)
         if (matches) {
             id = matches[2];
             console.log("KB number: " + id);
             switch (info.menuItemId) {
                 case "wolken":
                     chrome.tabs.create({url: "https://broadcomcms-software-agent.wolkenservicedesk.com/wolken/esd/knowledge-base-view/view-kb-article?articleNumber=" + id + "&isLocationBackOnHome=true&hideTabs=true"});
+                    break;
+                case "wolken-sr":
+                    chrome.tabs.create({url: "https://broadcomcms-software-agent.wolkenservicedesk.com/wolken/esd/case-view?caseId=" + id});
                     break;
                 case "kb":
                     chrome.tabs.create({url: "https://knowledge.broadcom.com/external/article/" + id});
