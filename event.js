@@ -59,7 +59,7 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
                     chrome.tabs.create({url: "https://knowledge.broadcom.com/external/article?legacyId=" + id});
                     break;
                 case "bugzilla":
-                    chrome.tabs.create({url: "https://bugzilla.eng.vmware.com/show_bug.cgi?id=" + id});
+                    chrome.tabs.create({url: "https://bugzilla-vcf.lvn.broadcom.net/show_bug.cgi?id=" + id});
                     break;
                 default:
                     //
